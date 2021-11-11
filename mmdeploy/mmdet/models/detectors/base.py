@@ -9,7 +9,7 @@ from mmdeploy.utils import is_dynamic_shape
 def _forward_of_base_detector_impl(ctx, self, img, img_metas=None, **kwargs):
     """Rewrite and adding mark for `forward`."""
     assert isinstance(img_metas, dict)
-    assert isinstance(img, torch.Tensor)
+    assert isinstance(img, (torch.Tensor, torch.fx.Proxy))
 
     deploy_cfg = ctx.cfg
     is_dynamic_flag = is_dynamic_shape(deploy_cfg)

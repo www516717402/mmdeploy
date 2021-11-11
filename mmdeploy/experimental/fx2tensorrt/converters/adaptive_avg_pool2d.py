@@ -1,5 +1,9 @@
-from typing import Any, Dict, Tuple
+# Copyright (c) NVIDIA CORPORATION. All rights reserved.
+# modified from
+# https://github.com/NVIDIA-AI-IOT/torch2trt
 import logging
+from typing import Any, Dict, Tuple
+
 import tensorrt as trt
 
 from ..converter_registry import TRT_REGISTRY

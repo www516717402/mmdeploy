@@ -104,7 +104,9 @@ def get_onnx_config(deploy_cfg: Union[str, mmcv.Config]) -> str:
     """
 
     deploy_cfg = load_config(deploy_cfg)[0]
-    return deploy_cfg['onnx_config']
+    # return deploy_cfg['onnx_config']
+    if 'onnx_config' not in deploy_cfg:
+        return None
 
 
 def is_dynamic_batch(deploy_cfg: Union[str, mmcv.Config],
@@ -120,8 +122,13 @@ def is_dynamic_batch(deploy_cfg: Union[str, mmcv.Config],
     """
 
     deploy_cfg = load_config(deploy_cfg)[0]
+
+    onnx_config = get_onnx_config(deploy_cfg)
+    if onnx_config is None:
+        return True
+
     # check if dynamic axes exist
-    dynamic_axes = get_onnx_config(deploy_cfg).get('dynamic_axes', None)
+    dynamic_axes = onnx_config.get('dynamic_axes', None)
     if dynamic_axes is None:
         return False
 
@@ -150,6 +157,11 @@ def is_dynamic_shape(deploy_cfg: Union[str, mmcv.Config],
     """
 
     deploy_cfg = load_config(deploy_cfg)[0]
+
+    onnx_config = get_onnx_config(deploy_cfg)
+    if onnx_config is None:
+        return True
+
     # check if dynamic axes exist
     dynamic_axes = get_onnx_config(deploy_cfg).get('dynamic_axes', None)
     if dynamic_axes is None:

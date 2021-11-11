@@ -1,9 +1,10 @@
 import logging
-from typing import Callable, Dict, Optional, Sequence, Union, Any
+from typing import Any, Callable, Dict, Optional, Sequence, Union
 
 import tensorrt as trt
 import torch
 from packaging import version
+
 from .trt_fx_parser import TRTFXParser
 
 

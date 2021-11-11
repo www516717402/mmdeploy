@@ -9,7 +9,7 @@ try:
     from mmdeploy.apis.tensorrt import TRTWrapper
     from mmdeploy.experimental.fx2tensorrt import fx2tensorrt
 except ImportError:
-    pytest.skip("TensorRT is not supported.", allow_module_level=True)
+    pytest.skip('TensorRT is not supported.', allow_module_level=True)
 
 
 def _test_ops_all_close(
@@ -46,6 +46,45 @@ def _test_ops_all_close(
     assert len(trt_outs) == len(outs)
     for trt_out, out in zip(trt_outs, outs):
         torch.testing.assert_allclose(trt_out, out)
+
+
+@torch.fx.wrap
+def fake_func(x):
+    return x + 1
+
+
+def test_default():
+
+    x = torch.rand(2, 3, 8, 8)
+
+    def _func_test(x):
+        return x + fake_func(x) - 1
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 3, 4, 4),
+            opt_shape=(2, 3, 8, 8),
+            max_shape=(4, 3, 16, 16)))
+
+    traced_model = symbolic_trace(_func_test)
+    engine = fx2tensorrt(
+        traced_model,
+        inputs,
+        input_shapes,
+        input_names=input_names,
+        output_names=output_names)
+
+    trt_model = TRTWrapper(engine)
+    with torch.no_grad():
+        inputs_dict = dict([(name, tensor.cuda())
+                            for name, tensor in zip(input_names, inputs)])
+        trt_outs = trt_model(inputs_dict)
+        trt_out = trt_outs['out']
+
+        torch.testing.assert_allclose(trt_out.cpu(), 2 * x)
 
 
 @pytest.mark.parametrize('elementwise_op,test_scalar',
@@ -500,3 +539,48 @@ def test_size():
 
     for trt_out, out in zip(trt_outs, outs):
         torch.testing.assert_allclose(trt_out.squeeze(), out.squeeze())
+
+
+def test_getitem_tensor():
+
+    def _test_slice_static(x):
+        return x[:, :, 2:4]
+
+    def _test_slice_dynamic(x):
+        return x[:, :, :x.shape[1]]
+
+    def _test_index_select(x):
+        return x[:, :, [3, 2, 1]]
+
+    def _test_int_select(x):
+        return x[:, :, 4]
+
+    def _test_int_select_dynamic(x):
+        return x[:, :, x.shape[1]]
+
+    def _test_None(x):
+        return x[:, None, ...]
+
+    def _test_Ellipsis(x):
+        return x[..., :, :2]
+
+    callable_list = [
+        _test_slice_static, _test_slice_dynamic, _test_index_select,
+        _test_int_select, _test_int_select_dynamic, _test_None, _test_Ellipsis
+    ]
+
+    x = torch.rand(2, 4, 6, 8)
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(min_shape=x.shape, opt_shape=x.shape, max_shape=x.shape))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)

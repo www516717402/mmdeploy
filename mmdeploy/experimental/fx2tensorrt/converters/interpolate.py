@@ -1,3 +1,6 @@
+# Copyright (c) NVIDIA CORPORATION. All rights reserved.
+# modified from
+# https://github.com/NVIDIA-AI-IOT/torch2trt
 import logging
 from typing import Any, Dict, Tuple
 

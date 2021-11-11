@@ -36,8 +36,15 @@ def torch_dtype_from_trt(dtype):
         raise TypeError(f'{dtype} is not supported by torch')
 
 
-def new_trt_const(network: trt.INetworkDefinition, tensor: torch.Tensor):
-    """create new trt.ITensor object"""
+def new_trt_const(network: trt.INetworkDefinition, tensor: Union[torch.Tensor,
+                                                                 int, float]):
+    """create new trt.ITensor object."""
+
+    if isinstance(tensor, int):
+        tensor = torch.tensor([tensor], dtype=torch.int32)
+    elif isinstance(tensor, float):
+        tensor = torch.tensor([tensor], dtype=torch.float)
+
     shape = tuple(tensor.shape)
     array = tensor.detach().cpu().numpy()
     layer = network.add_constant(shape, array)
@@ -108,7 +115,7 @@ def get_trt_shape(network: trt.INetworkDefinition,
                   start: int = 0,
                   size: Optional[int] = None,
                   stride: int = 1):
-    """create a shape tensor from excution tensor."""
+    """create a shape tensor from execution tensor."""
     shape = network.add_shape(x).get_output(0)
     return slice_trt_shape(network, shape, start, size, stride)
 

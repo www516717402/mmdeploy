@@ -1,5 +1,9 @@
-import torch
+# Copyright (c) NVIDIA CORPORATION. All rights reserved.
+# modified from
+# https://github.com/NVIDIA-AI-IOT/torch2trt
 from typing import Any, Dict, Tuple
+
+import torch
 
 from ..converter_registry import TRT_REGISTRY
 from ..converter_utils import get_trt_shape

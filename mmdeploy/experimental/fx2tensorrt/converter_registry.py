@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Callable, Dict
 
 
@@ -21,10 +22,14 @@ def eval_with_import(path: str) -> Any:
 
 
 class ConverterRegistry:
-    """Registry for converter"""
+    """Registry for converter."""
 
-    def __init__(self) -> None:
+    def __init__(self, default_converter=None) -> None:
         self._converter_map: Dict[Callable, Any] = {}
+        self.default_converter = default_converter
+
+    def set_default_converter(self, converter: Callable):
+        self.default_converter = converter
 
     def register_converter(self, func_name: str, **kwargs):
         """Decorator used to register converter between fx and engine.
@@ -51,10 +56,15 @@ class ConverterRegistry:
             method of supported classes.
 
         Returns:
-            converter (Callable): The convertor of `func`.
+            converter (Callable): The converter of `func`.
         """
-
-        assert func in self._converter_map, f'No converter for {func}.'
+        if func not in self._converter_map:
+            if self.default_converter is None:
+                raise NotImplementedError(f'No converter for {func}.')
+            else:
+                logging.warning(
+                    f'No converter for {func}, use default converter.')
+                return self.default_converter
         return self._converter_map[func]['converter']
 
 
