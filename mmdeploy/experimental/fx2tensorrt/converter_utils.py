@@ -46,9 +46,19 @@ def new_trt_const(network: trt.INetworkDefinition, tensor: Union[torch.Tensor,
         tensor = torch.tensor([tensor], dtype=torch.float)
 
     shape = tuple(tensor.shape)
+    if tensor.dtype == torch.long:
+        tensor = tensor.to(torch.int32)
     array = tensor.detach().cpu().numpy()
     layer = network.add_constant(shape, array)
     return layer.get_output(0)
+
+
+def get_or_new_const(network: trt.INetworkDefinition,
+                     tensor: Union[trt.ITensor, Any]):
+    if isinstance(tensor, trt.ITensor):
+        return tensor
+    else:
+        return new_trt_const(network, tensor)
 
 
 def new_trt_const_like(network: trt.INetworkDefinition, value: Any,
@@ -170,4 +180,6 @@ def cast_trt_type(network: trt.INetworkDefinition, x: trt.ITensor,
 
     layer = network.add_identity(x)
     layer.set_output_type(0, dtype)
-    return layer.get_output(0)
+    out = layer.get_output(0)
+    _ = out.shape  # cast might not happened if I do not add this, no idea.
+    return out

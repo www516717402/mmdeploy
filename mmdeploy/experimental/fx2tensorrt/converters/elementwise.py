@@ -14,7 +14,8 @@ from ..converter_utils import (align_trt_dims, cast_trt_type, get_arg,
 def _convert_elementwise_impl(network, torch_a, torch_b, trt_a, trt_b,
                               elementwise_op):
     assert isinstance(trt_a, trt.ITensor) or isinstance(trt_b, trt.ITensor),\
-        'One of input of binary ops should be tensor.'
+        'One of input of binary ops should be tensor.'\
+        + f' get type: {type(trt_a)}, {type(trt_b)}'
 
     if not isinstance(trt_a, trt.ITensor):
         trt_a = new_trt_const_like(network, torch_a, torch_b)

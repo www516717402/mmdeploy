@@ -17,7 +17,7 @@ def _map_new_constant(a: Argument, network: trt.INetworkDefinition):
 def default_converter(ctx: Any, torch_args: Tuple[Any, ...],
                       torch_kwargs: Dict[str, Any], trt_args: Tuple[Any, ...],
                       trt_kwargs: Dict[str, Any], torch_output):
-    return _map_new_constant(ctx.network, torch_output)
+    return _map_new_constant(torch_output, ctx.network)
 
 
 TRT_REGISTRY.set_default_converter(default_converter)

@@ -11,4 +11,8 @@ from .interpolate import *  # noqa:F401, F403
 from .linear import *  # noqa:F401, F403
 from .max_pool2d import *  # noqa:F401, F403
 from .relu import *  # noqa:F401, F403
+from .repeat import *  # noqa:F401, F403
 from .size import *  # noqa:F401, F403
+from .tensor_method import *  # noqa:F401, F403
+from .type import *  # noqa:F401, F403
+from .view import *  # noqa:F401, F403

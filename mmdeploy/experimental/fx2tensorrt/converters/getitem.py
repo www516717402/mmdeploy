@@ -15,16 +15,24 @@ def __convert__getitem__torchsize(ctx: Any, torch_args: Tuple[Any, ...],
                                   trt_args: Tuple[Any,
                                                   ...], trt_kwargs: Dict[str,
                                                                          Any]):
+    torch_x = torch_args[0]
     trt_x = trt_args[0]
+
     index = torch_args[1]
+    torch_dim = len(torch_x)
+
     # process Size
     if isinstance(index, int):
-        return slice_trt_shape(ctx.network, trt_x, torch_args[1], 1)
+        if index < 0:
+            index = index + torch_dim
+        return slice_trt_shape(ctx.network, trt_x, index, 1)
     elif isinstance(index, slice):
         shape_slice = index
         start = 0 if shape_slice.start is None else shape_slice.start
+        start = start if start >= 0 else start + torch_dim
         stop = len(
             torch_args[0]) if shape_slice.stop is None else shape_slice.stop
+        stop = stop if stop >= 0 else stop + torch_dim
         size = stop - start
         step = 1 if shape_slice.step is None else shape_slice.step
 
@@ -80,11 +88,13 @@ def __parse_slice(network: trt.INetworkDefinition, torch_slice: slice,
                                  torch.tensor([torch_size], dtype=torch.int32))
     else:
         if torch_start < 0:
+            torch_start = torch_start + torch_dim_size
             trt_start = network.add_elementwise(
                 trt_dim_size, trt_start,
                 trt.ElementWiseOperation.SUM).get_output(0)
 
         if torch_stop < 0:
+            torch_stop = torch_stop + torch_dim_size
             trt_stop = network.add_elementsize(
                 trt_dim_size, trt_stop,
                 trt.ElementWiseOperation.SUM).get_output(0)

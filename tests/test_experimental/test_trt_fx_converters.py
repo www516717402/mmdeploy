@@ -487,6 +487,9 @@ def test_size():
     def _size_test1(x):
         return x.size(0)
 
+    def _shape_as_tensor_test(x):
+        return torch._shape_as_tensor(x)
+
     x = torch.rand(1, 2, 3, 4)
     input_names = ['x']
     output_names = ['out']
@@ -497,27 +500,28 @@ def test_size():
             opt_shape=(2, 2, 3, 4),
             max_shape=(3, 2, 3, 4)))
 
-    torch_callable = _size_test
-    traced_model = symbolic_trace(torch_callable)
-    engine = fx2tensorrt(
-        traced_model,
-        inputs,
-        input_shapes,
-        input_names=input_names,
-        output_names=output_names)
+    callable_list = [_size_test, _shape_as_tensor_test]
+    for torch_callable in callable_list:
+        traced_model = symbolic_trace(torch_callable)
+        engine = fx2tensorrt(
+            traced_model,
+            inputs,
+            input_shapes,
+            input_names=input_names,
+            output_names=output_names)
 
-    trt_model = TRTWrapper(engine)
-    with torch.no_grad():
-        inputs_dict = dict([(name, tensor.cuda())
-                            for name, tensor in zip(input_names, inputs)])
-        trt_outs = trt_model(inputs_dict)
-        trt_outs = [trt_outs[name].cpu() for name in output_names]
-        outs = torch_callable(*inputs)
-        outs = [torch.tensor(outs)]
+        trt_model = TRTWrapper(engine)
+        with torch.no_grad():
+            inputs_dict = dict([(name, tensor.cuda())
+                                for name, tensor in zip(input_names, inputs)])
+            trt_outs = trt_model(inputs_dict)
+            trt_outs = [trt_outs[name].cpu() for name in output_names]
+            outs = torch_callable(*inputs)
+            outs = [torch.tensor(outs)]
 
-    assert len(trt_outs) == len(outs)
-    for trt_out, out in zip(trt_outs, outs):
-        torch.testing.assert_allclose(trt_out, out)
+        assert len(trt_outs) == len(outs)
+        for trt_out, out in zip(trt_outs, outs):
+            torch.testing.assert_allclose(trt_out, out)
 
     torch_callable = _size_test1
     traced_model = symbolic_trace(torch_callable)
@@ -576,6 +580,135 @@ def test_getitem_tensor():
     inputs = [x]
     input_shapes = dict(
         x=dict(min_shape=x.shape, opt_shape=x.shape, max_shape=x.shape))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_tensor_to():
+
+    def _test_to_device(x):
+        return x.to(x.device) + 1
+
+    def _test_to_dtype(x):
+        return x.to(torch.int32)
+
+    callable_list = [_test_to_device, _test_to_dtype]
+    x = torch.rand(2, 8, 8, 8) * 10
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 8, 4, 4),
+            opt_shape=(2, 8, 8, 8),
+            max_shape=(4, 8, 16, 16)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_repeat():
+
+    def _test_repeat_static(x):
+        return x.repeat(1, 2, 1, 2)
+
+    def _test_repeat_dynamic(x):
+        return x.repeat(1, x.shape[2], 1, 2)
+
+    def _test_expand_static(x):
+        return x.expand(1, 2, -1, 4)
+
+    def _test_expand_dynamic(x):
+        return x.expand(1, 2, 3, x.shape[2])
+
+    callable_list = [
+        _test_repeat_static, _test_repeat_dynamic, _test_expand_static,
+        _test_expand_dynamic
+    ]
+
+    x = torch.rand(1, 2, 3, 1)
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 1),
+            opt_shape=(1, 2, 3, 1),
+            max_shape=(1, 2, 3, 1)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_view():
+
+    def _test_view_static(x):
+        return x.view(2, 4, 3)
+
+    def _test_view_dynamic(x):
+        return x.view(2, -1, x.shape[2] * 2)
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_view_static, _test_view_dynamic]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_type_cast():
+
+    def _test_type(x):
+        return x.type(torch.int32) + 1
+
+    def _test_type_as(x):
+        y = x.type(torch.int32) + 1
+        return x.type_as(y)
+
+    x = torch.rand(1, 2, 3, 4) * 2
+
+    callable_list = [_test_type, _test_type_as]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
 
     for callable in callable_list:
         _test_ops_all_close(
