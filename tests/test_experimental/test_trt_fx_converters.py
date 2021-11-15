@@ -717,3 +717,107 @@ def test_type_cast():
             input_names=input_names,
             output_names=output_names,
             input_shapes=input_shapes)
+
+
+def test_cat():
+
+    def _test_cat(x, y):
+        return torch.cat([x, y], dim=2)
+
+    x = torch.rand(1, 2, 3, 4)
+    y = torch.rand(1, 2, 5, 4)
+
+    callable_list = [_test_cat]
+
+    input_names = ['x', 'y']
+    output_names = ['out']
+    inputs = [x, y]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)),
+        y=dict(
+            min_shape=(1, 2, 5, 4),
+            opt_shape=(1, 2, 5, 4),
+            max_shape=(1, 2, 5, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_stack():
+
+    def _test_stack0(x, y):
+        return torch.stack([x, y], dim=-1)
+
+    def _test_stack1(x, y):
+        return torch.stack([x, y], dim=1)
+
+    def _test_stack2(x, y):
+        return torch.stack([x, y])
+
+    x = torch.rand(1, 2, 3, 4)
+    y = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_stack0, _test_stack1, _test_stack2]
+
+    input_names = ['x', 'y']
+    output_names = ['out']
+    inputs = [x, y]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)),
+        y=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)),
+    )
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_unsqueeze():
+
+    def _test_unsqueeze0(x):
+        return x.unsqueeze(0)
+
+    def _test_unsqueeze1(x):
+        return torch.unsqueeze(x, -1)
+
+    def _test_unsqueeze2(x):
+        return torch.unsqueeze(x, 2)
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_unsqueeze0, _test_unsqueeze1, _test_unsqueeze2]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
