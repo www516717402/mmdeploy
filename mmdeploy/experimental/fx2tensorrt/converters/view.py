@@ -26,7 +26,7 @@ def convert__view(ctx: Any, torch_args: Tuple[Any, ...],
 
     need_dynamic_reshape = isinstance(size, trt.ITensor)
 
-    if any(s < 0 or isinstance(s, trt.ITensor) for s in size):
+    if any((isinstance(s, trt.ITensor) or s < 0) for s in size):
         need_dynamic_reshape = True
         size = [get_or_new_const(ctx.network, s) for s in size]
         size = concate_trt(ctx.network, *size)

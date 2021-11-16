@@ -8,11 +8,14 @@ from .elementwise import *  # noqa:F401, F403
 from .flatten import *  # noqa:F401, F403
 from .getattr import *  # noqa:F401, F403
 from .getitem import *  # noqa:F401, F403
+from .identity import *  # noqa:F401, F403
 from .interpolate import *  # noqa:F401, F403
 from .linear import *  # noqa:F401, F403
 from .max_pool2d import *  # noqa:F401, F403
+from .permute import *  # noqa:F401, F403
 from .relu import *  # noqa:F401, F403
 from .repeat import *  # noqa:F401, F403
+from .sigmoid import *  # noqa:F401, F403
 from .size import *  # noqa:F401, F403
 from .stack import *  # noqa:F401, F403
 from .tensor_method import *  # noqa:F401, F403

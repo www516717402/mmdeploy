@@ -48,7 +48,7 @@ def new_trt_const(network: trt.INetworkDefinition, tensor: Union[torch.Tensor,
     shape = tuple(tensor.shape)
     if tensor.dtype == torch.long:
         tensor = tensor.to(torch.int32)
-    array = tensor.detach().cpu().numpy()
+    array = tensor.contiguous().detach().cpu().numpy()
     layer = network.add_constant(shape, array)
     return layer.get_output(0)
 

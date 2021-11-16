@@ -821,3 +821,84 @@ def test_unsqueeze():
             input_names=input_names,
             output_names=output_names,
             input_shapes=input_shapes)
+
+
+def test_identity():
+
+    def _test_identity(x):
+        return x.detach() + 1
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_identity]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_permute():
+
+    def _test_permute(x):
+        return x.permute(0, 2, 3, 1)
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_permute]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
+def test_sigmoid():
+
+    def _test_sigmoid(x):
+        return x.sigmoid()
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_sigmoid]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)

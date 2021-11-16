@@ -42,7 +42,7 @@ def get_bboxes_of_anchor_head(ctx,
     mlvl_scores = []
     for level_id, cls_score, bbox_pred, anchors in zip(
             range(num_levels), mlvl_cls_scores, mlvl_bbox_preds, mlvl_anchors):
-        assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
+        # assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
         cls_score = cls_score.permute(0, 2, 3,
                                       1).reshape(batch_size, -1,
                                                  self.cls_out_channels)
