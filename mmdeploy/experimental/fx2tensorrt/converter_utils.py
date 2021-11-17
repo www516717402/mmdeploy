@@ -4,6 +4,19 @@ import tensorrt as trt
 import torch
 
 
+def torch_dim_to_trt_axes(dim: Union[int, Sequence]):
+    """Converts torch dim, or tuple of dims to a tensorrt axes bitmask."""
+    if not isinstance(dim, Sequence):
+        dim = (dim, )
+
+    # create axes bitmask for reduce layer
+    axes = 0
+    for d in dim:
+        axes |= 1 << (d)
+
+    return axes
+
+
 def torch_dtype_to_trt(dtype: trt.DataType):
     """PyTorch dtype to TensorRT dtype."""
     if dtype == torch.bool:

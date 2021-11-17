@@ -7,8 +7,8 @@ import tensorrt as trt
 import torch
 
 from ..converter_registry import TRT_REGISTRY
-from ..converter_utils import (get_or_new_const, get_trt_shape, new_trt_const,
-                               slice_trt_shape)
+from ..converter_utils import (get_arg, get_or_new_const, get_trt_shape,
+                               new_trt_const, slice_trt_shape)
 
 
 def __unsqueeze_input(network, trt_input, dim):
@@ -103,6 +103,19 @@ def convert__expand(ctx: Any, torch_args: Tuple[Any, ...],
 
     trt_output_shape = ctx.network.add_concatenation(
         trt_output_shape).get_output(0)
+
+    # convert repeat
+    return __convert_repeat_impl(ctx.network, trt_input, trt_output_shape)
+
+
+@TRT_REGISTRY.register_converter('torch.Tensor.expand_as')
+def convert__expand_as(ctx: Any, torch_args: Tuple[Any, ...],
+                       torch_kwargs: Dict[str, Any], trt_args: Tuple[Any, ...],
+                       trt_kwargs: Dict[str, Any], **kwargs):
+    trt_input = trt_args[0]
+    trt_other = get_arg(trt_args, trt_kwargs, 'other', pos=1, default=None)
+
+    trt_output_shape = get_trt_shape(ctx.network, trt_other)
 
     # convert repeat
     return __convert_repeat_impl(ctx.network, trt_input, trt_output_shape)

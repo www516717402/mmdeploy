@@ -10,6 +10,17 @@ from ..converter_registry import TRT_REGISTRY
 from ..converter_utils import get_trt_shape, new_trt_const, slice_trt_shape
 
 
+def __convert__getitem__sequence(ctx: Any, torch_args: Tuple[Any, ...],
+                                 torch_kwargs: Dict[str, Any],
+                                 trt_args: Tuple[Any,
+                                                 ...], trt_kwargs: Dict[str,
+                                                                        Any]):
+    seq = trt_args[0]
+    slices = trt_args[1]
+
+    return seq[slices]
+
+
 def __convert__getitem__torchsize(ctx: Any, torch_args: Tuple[Any, ...],
                                   torch_kwargs: Dict[str, Any],
                                   trt_args: Tuple[Any,
@@ -310,5 +321,8 @@ def convert__getitem(ctx: Any, torch_args: Tuple[Any, ...],
     elif isinstance(x, torch.Tensor):
         return __convert__getitem__tensor(ctx, torch_args, torch_kwargs,
                                           trt_args, trt_kwargs)
+    elif isinstance(x, Sequence):
+        return __convert__getitem__sequence(ctx, torch_args, torch_kwargs,
+                                            trt_args, trt_kwargs)
     else:
         raise TypeError(f'Unknown getitem of {type(x)}.')

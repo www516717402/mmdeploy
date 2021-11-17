@@ -18,6 +18,7 @@ def _test_ops_all_close(
     input_names: List[str],
     output_names: List[str],
     input_shapes: Dict[str, Dict[str, Sequence]],
+    max_workspace_size: int = 0,
     rtol: float = None,
     atol: float = None,
 ):
@@ -30,7 +31,8 @@ def _test_ops_all_close(
         inputs,
         input_shapes,
         input_names=input_names,
-        output_names=output_names)
+        output_names=output_names,
+        max_workspace_size=max_workspace_size)
 
     trt_model = TRTWrapper(engine)
     with torch.no_grad():
@@ -633,9 +635,13 @@ def test_repeat():
     def _test_expand_dynamic(x):
         return x.expand(1, 2, 3, x.shape[2])
 
+    def _test_expand_as(x):
+        y = x.repeat(1, 1, 1, 4)
+        return x.expand_as(y)
+
     callable_list = [
         _test_repeat_static, _test_repeat_dynamic, _test_expand_static,
-        _test_expand_dynamic
+        _test_expand_dynamic, _test_expand_as
     ]
 
     x = torch.rand(1, 2, 3, 1)
@@ -823,6 +829,39 @@ def test_unsqueeze():
             input_shapes=input_shapes)
 
 
+def test_squeeze():
+
+    def _test_squeeze0(x):
+        return x.squeeze(2) + 1
+
+    def _test_squeeze1(x):
+        return torch.squeeze(x, -2) + 1
+
+    def _test_squeeze2(x):
+        return torch.squeeze(x, 3) + 1
+
+    x = torch.rand(1, 2, 1, 4)
+
+    callable_list = [_test_squeeze0, _test_squeeze1, _test_squeeze2]
+
+    input_names = ['x']
+    output_names = ['out']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 1, 4),
+            opt_shape=(1, 2, 1, 4),
+            max_shape=(1, 2, 1, 4)))
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes)
+
+
 def test_identity():
 
     def _test_identity(x):
@@ -902,3 +941,71 @@ def test_sigmoid():
             input_names=input_names,
             output_names=output_names,
             input_shapes=input_shapes)
+
+
+def test_topk():
+
+    def _test_topk0(x):
+        return x.topk(2, dim=3)
+
+    def _test_topk1(x):
+        x = x.view(-1)
+        return x.topk(2)
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_topk0, _test_topk1]
+
+    input_names = ['x']
+    output_names = ['out0', 'out1']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+    max_workspace_size = 1 << 24
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes,
+            max_workspace_size=max_workspace_size)
+
+
+def test_max():
+
+    def _test_max0(x):
+        return x.max(), x + 0
+
+    def _test_max1(x):
+        return torch.max(x, 2)
+
+    x = torch.rand(1, 2, 3, 4)
+
+    callable_list = [_test_max0, _test_max1]
+
+    input_names = ['x']
+    output_names = ['out0', 'out1']
+    inputs = [x]
+    input_shapes = dict(
+        x=dict(
+            min_shape=(1, 2, 3, 4),
+            opt_shape=(1, 2, 3, 4),
+            max_shape=(1, 2, 3, 4)))
+    max_workspace_size = 1 << 24
+
+    for callable in callable_list:
+        _test_ops_all_close(
+            callable,
+            inputs,
+            input_names=input_names,
+            output_names=output_names,
+            input_shapes=input_shapes,
+            max_workspace_size=max_workspace_size)
+
+
+test_max()
