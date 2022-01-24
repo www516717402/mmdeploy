@@ -1,6 +1,6 @@
 _base_ = ['./classification_dynamic.py', '../_base_/backends/tensorrt-fp16.py']
 
-onnx_config = dict(input_shape=[224, 224])
+ir_config = dict(input_shape=[224, 224])
 backend_config = dict(
     common_config=dict(max_workspace_size=1 << 30),
     model_inputs=[

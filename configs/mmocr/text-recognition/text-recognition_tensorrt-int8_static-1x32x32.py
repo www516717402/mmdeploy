@@ -2,7 +2,7 @@ _base_ = [
     './text-recognition_static.py', '../../_base_/backends/tensorrt-int8.py'
 ]
 
-onnx_config = dict(input_shape=[32, 32])
+ir_config = dict(input_shape=[32, 32])
 backend_config = dict(
     common_config=dict(max_workspace_size=1 << 30),
     model_inputs=[

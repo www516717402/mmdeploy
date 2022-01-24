@@ -21,8 +21,6 @@ build_object_target(${BACKEND_OPS_OBJ} "${BACKEND_OPS_SRCS}")
 target_compile_definitions(${BACKEND_OPS_OBJ}
         PRIVATE -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT=1)
 target_include_directories(${BACKEND_OPS_OBJ}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-target_include_directories(${BACKEND_OPS_OBJ}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/common)
 target_include_directories(${BACKEND_OPS_OBJ}
         PRIVATE ${CUDA_TOOLKIT_ROOT_DIR}/include)

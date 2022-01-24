@@ -1,6 +1,6 @@
 _base_ = ['./base_static.py', '../../_base_/backends/tensorrt.py']
 
-onnx_config = dict(input_shape=(300, 300))
+ir_config = dict(input_shape=(300, 300))
 
 backend_config = dict(
     common_config=dict(max_workspace_size=1 << 30),

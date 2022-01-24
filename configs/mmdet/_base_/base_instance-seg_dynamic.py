@@ -1,5 +1,5 @@
 _base_ = ['./base_instance-seg_static.py']
-onnx_config = dict(
+ir_config = dict(
     dynamic_axes={
         'input': {
             0: 'batch',

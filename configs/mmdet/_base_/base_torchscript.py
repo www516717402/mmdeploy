@@ -1,4 +1,4 @@
-_base_ = ['../../_base_/onnx_config.py']
+_base_ = ['../../_base_/torchscript_config.py']
 
 ir_config = dict(output_names=['dets', 'labels'], input_shape=None)
 codebase_config = dict(

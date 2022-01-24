@@ -1,5 +1,5 @@
 _base_ = ['./super-resolution_static.py']
-onnx_config = dict(
+ir_config = dict(
     dynamic_axes={
         'input': {
             0: 'batch',

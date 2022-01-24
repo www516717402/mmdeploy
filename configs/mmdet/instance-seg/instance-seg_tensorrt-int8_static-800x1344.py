@@ -3,7 +3,7 @@ _base_ = [
     '../../_base_/backends/tensorrt-int8.py'
 ]
 
-onnx_config = dict(input_shape=(1344, 800))
+ir_config = dict(input_shape=(1344, 800))
 backend_config = dict(
     common_config=dict(max_workspace_size=1 << 30),
     model_inputs=[
